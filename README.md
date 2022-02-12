@@ -6,4 +6,4 @@ a imitation of DSMAP. The original paper and can be found at [here](https://gith
 
 2. Put images of 2 domains in these files separately.
 
-3. run *train.py* to train and *visual.py* to output images using trained model
+3. run *train.py* to train and *visual.py* to output images using trained model.
