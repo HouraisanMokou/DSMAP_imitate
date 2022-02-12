@@ -34,12 +34,13 @@ class Runner(BaseRunner):
         loss_b_random = self.dis_b.loss(x_b, x_ab_r.detach())
         loss_a = self.dis_a.loss(x_a, x_ba.detach())
         loss_b = self.dis_b.loss(x_b, x_ab.detach())
-        total_loss = self.lambda_g * (loss_a+loss_b+loss_a_random+loss_b_random)
+        total_loss = self.lambda_g * (loss_a + loss_b + loss_a_random + loss_b_random)
         total_loss.backward()
         self.dis_optimizer.step()
         info_dict = {
-            'loss_a_random':loss_a_random.cpu().detach().numpy(),'loss_b_random':loss_b_random.cpu().detach().numpy(),
-            'loss_a':loss_a.cpu().detach().numpy(),'loss_b':loss_b.cpu().detach().numpy(),
+            'loss_a_random': loss_a_random.cpu().detach().numpy(),
+            'loss_b_random': loss_b_random.cpu().detach().numpy(),
+            'loss_a': loss_a.cpu().detach().numpy(), 'loss_b': loss_b.cpu().detach().numpy(),
             'total_loss': total_loss.cpu().detach().numpy(), 'used_time': time.time() - t1
         }
         return info_dict
@@ -122,14 +123,14 @@ class Runner(BaseRunner):
         }
         return info_dict
 
-    def sample(self,x_a,x_b):
+    def sample(self, x_a, x_b):
         with torch.no_grad():
             pre_a, c_a, c_a_share, dm_ab, s_a = self.gen_a.encode(x_a)
             pre_b, c_b, c_b_share, dm_ba, s_b = self.gen_b.encode(x_b)
 
             x_ba = self.gen_a.decode(dm_ba, s_a)
             x_ab = self.gen_b.decode(dm_ab, s_b)
-            return x_ba,x_ab
+            return x_ba, x_ab
 
     def save(self, iter):
         torch.save({
@@ -141,11 +142,11 @@ class Runner(BaseRunner):
             'dis_optimizer': self.dis_optimizer.state_dict(),
             'gen_scheduler': self.gen_scheduler.state_dict(),
             'dis_scheduler': self.dis_scheduler.state_dict(),
-        }, os.path.join(self.ckpt_prefix, f'epoch{iter}.pt'))
-        return 'save successfully'
+        }, os.path.join(self.ckpt_prefix, f'iter_{iter}.pt'))
+        return 'save successfully at iter ' + str(iter)
 
     def load(self, iter):
-        ckpt = torch.load(os.path.join(self.ckpt_prefix, f'epoch{iter}.pt'))
+        ckpt = torch.load(os.path.join(self.ckpt_prefix, f'iter_{iter}.pt'))
         self.gen_a.load_state_dict(ckpt['gen_a'])
         self.gen_b.load_state_dict(ckpt['gen_b'])
         self.gen_optimizer.load_state_dict(ckpt['gen_optimizer'])
@@ -154,4 +155,4 @@ class Runner(BaseRunner):
         self.dis_b.load_state_dict(ckpt['dis_b'])
         self.dis_optimizer.load_state_dict(ckpt['dis_optimizer'])
         self.dis_scheduler.load_state_dict(ckpt['dis_scheduler'])
-        return 'load successfully'
+        return 'load successfully from iter ' + str(iter)

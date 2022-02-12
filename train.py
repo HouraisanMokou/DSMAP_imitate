@@ -25,40 +25,47 @@ if __name__ == '__main__':
         )
     )
 
-    num_workers=1
-    root=opts.dataset_path[0]
-    data=os.listdir(root)
+    num_workers = 1
+    root = opts.dataset_path[0]
+    data = os.listdir(root)
     loader1 = GanLoader(
-        DataLoader(ImageSet(data,opts,root),
-        opts.batch_size, shuffle=True, num_workers=num_workers))
-    root=opts.dataset_path[1]
-    data=os.listdir(root)
+        DataLoader(ImageSet(data, opts, root),
+                   opts.batch_size, shuffle=True, num_workers=num_workers))
+    root = opts.dataset_path[1]
+    data = os.listdir(root)
     loader2 = GanLoader(
-        DataLoader(ImageSet(data,opts,root),
-        opts.batch_size, shuffle=True, num_workers=num_workers))
+        DataLoader(ImageSet(data, opts, root),
+                   opts.batch_size, shuffle=True, num_workers=num_workers))
 
-    trainer=Runner(opts)
+    trainer = Runner(opts)
 
-    if opts.start_iter >-1:
-        result,suc=util.load(opts,trainer,opts.start_iter)
+    if opts.start_iter > -1:
+        result, suc = util.load(opts, trainer, opts.start_iter)
         logger.info(suc)
     else:
-        result={
-            'gen':defaultdict(list),'dis':defaultdict(list)
+        result = {
+            'gen': defaultdict(list), 'dis': defaultdict(list)
         }
+    t1=time.time()
+    dis_loss, gen_loss = 0, 0
+    for iter in range(opts.start_iter + 1, opts.start_iter + 1 + opts.train_iter):
+        xa = next(loader1).to(opts.device)
+        xb = next(loader2).to(opts.device)
 
-    for iter in range(opts.start_iter+1,opts.start_iter+1+opts.train_iter):
-        xa=next(loader1).to(opts.device)
-        xb=next(loader2).to(opts.device)
-
-        dis_dict=trainer.dis_step(xa,xb)
-        gen_dict=trainer.gen_step(xa,xb)
+        dis_dict = trainer.dis_step(xa, xb)
+        gen_dict = trainer.gen_step(xa, xb)
         for k in dis_dict.keys():
             result['dis'][k].append(dis_dict[k])
         for k in gen_dict.keys():
             result['gen'][k].append(gen_dict[k])
+        dis_loss += result['dis']['total_loss']
+        gen_loss += result['gen']['total_loss']
 
-        if iter%opts.save_period==0:
-            logger.info(util.save(opts,trainer,result,iter))
+        if iter % opts.save_period == 0:
+            logger.info('In last period: used time: [{:>30f}]| discriminator loss: [{:>30f}]| gen loss [{:>30f}]'\
+                        .format(time.time()-t1,dis_loss,gen_loss))
+            logger.info(util.save(opts, trainer, result, iter))
+            t1 = time.time()
+            dis_loss, gen_loss = 0, 0
 
         # logger.info('finish a iter')
