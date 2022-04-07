@@ -2,6 +2,7 @@ import logging
 import os.path
 import time
 
+import torch
 from torch.utils.data import DataLoader
 
 from utils import opt, util
@@ -30,12 +31,12 @@ if __name__ == '__main__':
     data = os.listdir(root)
     loader1 = GanLoader(
         DataLoader(ImageSet(data, opts, root),
-                   opts.batch_size, shuffle=True, num_workers=num_workers))
+                   opts.batch_size, shuffle=True, num_workers=num_workers,drop_last=True))
     root = opts.dataset_path[1]
     data = os.listdir(root)
     loader2 = GanLoader(
         DataLoader(ImageSet(data, opts, root),
-                   opts.batch_size, shuffle=True, num_workers=num_workers))
+                   opts.batch_size, shuffle=True, num_workers=num_workers,drop_last=True))
 
     trainer = Runner(opts)
 
@@ -58,8 +59,8 @@ if __name__ == '__main__':
             result['dis'][k].append(dis_dict[k])
         for k in gen_dict.keys():
             result['gen'][k].append(gen_dict[k])
-        dis_loss += result['dis']['total_loss']
-        gen_loss += result['gen']['total_loss']
+        dis_loss += result['dis']['total_loss'][-1]
+        gen_loss += result['gen']['total_loss'][-1]
 
         if iter % opts.save_period == 0:
             logger.info('In last period: used time: [{:>30f}]| discriminator loss: [{:>30f}]| gen loss [{:>30f}]'\
@@ -67,5 +68,8 @@ if __name__ == '__main__':
             logger.info(util.save(opts, trainer, result, iter))
             t1 = time.time()
             dis_loss, gen_loss = 0, 0
+
+            trainer.gen(xa,xb,iter,opts)
+
 
         # logger.info('finish a iter')

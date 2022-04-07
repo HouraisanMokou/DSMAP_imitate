@@ -28,7 +28,7 @@ def baseOpt():
                         help='number of epochs')
     parser.add_argument('--train_iter', type=int, default=100000,
                         help='number of epochs')
-    parser.add_argument('--save_period', type=int, default=2000,
+    parser.add_argument('--save_period', type=int, default=10,
                         help='save period')
     parser.add_argument('--lr', type=float, default=1e-4, help='learning rate')
     parser.add_argument('--l2', type=float, default=0, help='l2 regularization in optimizer')
@@ -61,7 +61,7 @@ def baseOpt():
     parser.add_argument('--gen_active', type=str, default='relu', choices=['lrelu', 'relu'],
                         help='the active function of generator')
 
-    parser.add_argument('--testing_iter', type=int, default=0,
+    parser.add_argument('--testing_iter', type=int, default=10,
                         help='iter to test')
     parser.add_argument('--show_samples', type=int, default=1,
                         help='# of testing samples')
@@ -87,6 +87,7 @@ def baseOpt():
     sets=args.dataset_name.split(';')
     paths=[os.path.join(args.data_directory, s) for s in sets]
     setattr(args, 'dataset_path', paths)
+    setattr(args, 'classes', sets)
     prefix = args.checkpoints_directory + '/' + '{}_{}'.format(args.model, args.dataset_name)
     setattr(args, 'checkpoints_prefix',
             prefix)

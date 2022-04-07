@@ -32,6 +32,9 @@ class AdaIN(nn.Module):
         running_mean = self.running_mean.repeat(b)
         running_var = self.running_var.repeat(b)
         xx = x.contiguous().view(1, b * c, *x.size()[2:])
+
+        # print(f'{x.shape};{running_mean.shape};{running_var.shape};{self.weight.shape};{self.bias.shape};{self.dim}')
+
         out = F.batch_norm(xx, running_mean, running_var, self.weight, self.bias, True, self.momentum, self.eps)
         return out.view(*x.size())
 

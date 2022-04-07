@@ -4,7 +4,7 @@ from torch.optim import Adam
 from torch.optim.lr_scheduler import StepLR
 from ..Generator.generator import Generator
 from ..Generator.decoder import Decoder
-from ..Generator.encoder import StyleEncoder, ContentEncoder
+from ..Generator.encoder import StyleEncoder, ContentEncoder_share
 from ..Discriminator.discriminator import Discriminator
 from utils.util import vgg_preprocess,contextual_loss
 
@@ -26,11 +26,11 @@ class BaseRunner(nn.Module):
         super(BaseRunner, self).__init__()
         self.device=opt.device
         self.ckpt_prefix=opt.checkpoints_prefix
-        self.num_domain = 2
-        self.content_encoder = ContentEncoder(opt, 'in', num_domain=self.num_domain).to(self.device)
+        self.num_domain = len(opt.classes)
+        self.content_encoder = ContentEncoder_share(opt, 'in', num_domain=self.num_domain).to(self.device)
         self.style_dim = opt.style_dim
-        self.gen_list = list()
-        self.dis_list = list()
+        self.gen_list = nn.ModuleList()
+        self.dis_list = nn.ModuleList()
         for idx in range(self.num_domain):
             gen = Generator(self.content_encoder, idx, opt)
             dis = Discriminator(opt)

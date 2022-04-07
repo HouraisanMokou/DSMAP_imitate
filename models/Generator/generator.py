@@ -5,12 +5,12 @@ from ..util.active import *
 from ..Blocks.Conv import Conv
 from ..Blocks.MultiBlocks import ResBlocks,MLP
 from ..Blocks.DMBlock import DMBlock
-from .encoder import StyleEncoder, ContentEncoder
+from .encoder import StyleEncoder, ContentEncoder_share
 from .decoder import Decoder
 
 
 class Generator(nn.Module):
-    def __init__(self, content_encoder: ContentEncoder, idx, opt):
+    def __init__(self, content_encoder: ContentEncoder_share, idx, opt):
         super(Generator, self).__init__()
         self.loss_mod = opt.loss_mod
         self.idx = idx
@@ -34,6 +34,7 @@ class Generator(nn.Module):
         cnt=0
         for m in self.decoder.modules():
             if m.__class__.__name__=='AdaIN':
+                # print(f'{cnt};{cnt+m.dim};{style[:,cnt:cnt+m.dim].contiguous().shape}')
                 m.weight=style[:,cnt:cnt+m.dim].contiguous().view(-1)
                 m.bias=style[:,cnt+m.dim:cnt+2*m.dim].contiguous().view(-1)
                 cnt+=2*m.dim
