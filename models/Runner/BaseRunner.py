@@ -43,13 +43,15 @@ class BaseRunner(nn.Module):
             dis_paras += list(dis.parameters())
         gen_paras,dis_paras=list(set(gen_paras)),list(set(dis_paras))
         self.gen_optimizer = Adam(gen_paras, lr=opt.lr, weight_decay=opt.l2)
-        self.dis_optimizer = Adam(dis_paras, lr=opt.lr, weight_decay=opt.l2)
+        self.dis_optimizer = Adam(dis_paras, lr=opt.lr/10, weight_decay=opt.l2)
         self.gen_scheduler = StepLR(self.gen_optimizer,opt.step,opt.gamma)
         self.dis_scheduler = StepLR(self.dis_optimizer,opt.step,opt.gamma)
 
-        # self.apply(self.init_dict['kaiming'])
-        # for dis in self.dis_list:
-        #     dis.apply(self.init_dict['gaussian'])
+        self.apply(self.init_dict['gaussian'])
+        for gen in self.gen_list:
+            gen.apply(self.init_dict['gaussian'])
+        for dis in self.dis_list:
+            dis.apply(self.init_dict['gaussian'])
 
         self.lambda_g=opt.lambda_g
         self.lambda_recon_x=opt.lambda_recon_x

@@ -37,8 +37,10 @@ class Runner(BaseRunner):
         loss_a = self.dis_a.loss(x_a, x_ba.detach())
         loss_b = self.dis_b.loss(x_b, x_ab.detach())
         total_loss = self.lambda_g * (loss_a + loss_b + loss_a_random + loss_b_random)
-        total_loss.backward()
+        if not torch.isnan(total_loss):
+            total_loss.backward()
         self.dis_optimizer.step()
+        self.dis_scheduler.step()
         info_dict = {
             'loss_a_random': loss_a_random.cpu().detach().numpy(),
             'loss_b_random': loss_b_random.cpu().detach().numpy(),
@@ -88,6 +90,17 @@ class Runner(BaseRunner):
         loss_perceptual_a_random, loss_perceptual_b_random = \
             self.vgg_perceptual_loss(x_ba_r, x_a), self.vgg_perceptual_loss(x_ab_r, x_b)
 
+        # print(f"loss_recon_x_a {loss_recon_x_a} {loss_recon_x_b}")
+        # print(f"loss_recon_c_a {loss_recon_c_a} {loss_recon_c_b}")
+        # print(f"loss_recon_d_a {loss_recon_d_a} {loss_recon_d_b}")
+        # print(f"loss_cc_x_a {loss_cc_x_a} {loss_cc_x_b}")
+        # print(f"loss_adv_a {loss_adv_a} {loss_adv_b}")
+        # print(f"loss_perceptual {loss_perceptual_a} {loss_perceptual_b}")
+        # print(f"loss_recon_s_a_r {loss_recon_s_a_random} {loss_recon_s_b_random}")
+        # print(f"loss_recon_c_a_r {loss_recon_c_a_random} {loss_recon_c_b_random}")
+        # print(f"loss_adv_a_r {loss_adv_a_random} {loss_adv_b_random}")
+        # print(f"loss_perceptual_a_r {loss_perceptual_a_random} {loss_perceptual_b_random}")
+
         total_loss = \
             self.lambda_g * (loss_adv_a + loss_adv_b + loss_adv_a_random + loss_adv_b_random) + \
             self.lambda_recon_c * (loss_recon_c_a + loss_recon_c_b + loss_recon_c_a_random + loss_recon_c_b_random) + \
@@ -97,9 +110,11 @@ class Runner(BaseRunner):
             self.lambda_recon_s * (loss_recon_s_a_random + loss_recon_s_b_random) + \
             self.lambda_vgg * (
                     loss_perceptual_a + loss_perceptual_b + loss_perceptual_a_random + loss_perceptual_b_random)
-
-        total_loss.backward()
+        print(f'total {total_loss}')
+        if not torch.isnan(total_loss):
+            total_loss.backward()
         self.gen_optimizer.step()
+        self.gen_scheduler.step()
         info_dict = {
             'loss_recon_d_a': loss_recon_d_a.cpu().detach().numpy(),
             'loss_recon_d_b': loss_recon_d_b.cpu().detach().numpy(),

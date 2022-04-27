@@ -13,7 +13,7 @@ def baseOpt():
     parser.add_argument('--checkpoints_directory', type=str, default='./checkpoint', help='checkpoints directory')
 
     # ilsvrc2012 SIGGRAPH
-    parser.add_argument('--dataset_name', type=str, default='1;2', help='the name of sets (split with \';\' ')
+    parser.add_argument('--dataset_name', type=str, default='trainA-trainB', help='the name of sets (split with \'-\' ')
     parser.add_argument('--model', type=str, default='DSMAP', help='the name of model')
 
     parser.add_argument('--stage', type=str, default='train', help='train/test')
@@ -26,13 +26,13 @@ def baseOpt():
                         help='cuda:0 / cpu')
     parser.add_argument('--start_iter', type=int, default=-1,
                         help='number of epochs')
-    parser.add_argument('--train_iter', type=int, default=100000,
+    parser.add_argument('--train_iter', type=int, default=200000,
                         help='number of epochs')
-    parser.add_argument('--save_period', type=int, default=10,
+    parser.add_argument('--save_period', type=int, default=1000,
                         help='save period')
     parser.add_argument('--lr', type=float, default=1e-4, help='learning rate')
     parser.add_argument('--l2', type=float, default=0, help='l2 regularization in optimizer')
-    parser.add_argument('--batch_size', type=int, default=2, help='batch size while training/ validating')
+    parser.add_argument('--batch_size', type=int, default=6, help='batch size while training/ validating')
 
     parser.add_argument('--size', type=int, default=192, help='h,w of img')
     # args for model
@@ -67,6 +67,14 @@ def baseOpt():
                         help='# of testing samples')
     args, unknown = parser.parse_known_args()
 
+    random.seed(args.random_state)
+    np.random.seed(args.random_state)
+    torch.manual_seed(args.random_state)
+    torch.cuda.manual_seed(args.random_state)
+    torch.cuda.manual_seed_all(args.random_state)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+
     setattr(args, 'logging_file_name', os.path.join(
         args.logging_directory,
         '{}_{}_{}.txt'.format(args.model,
@@ -84,7 +92,7 @@ def baseOpt():
         '{}_{}'.format(args.model,
                        args.dataset_name)
     ))
-    sets=args.dataset_name.split(';')
+    sets=args.dataset_name.split('-')
     paths=[os.path.join(args.data_directory, s) for s in sets]
     setattr(args, 'dataset_path', paths)
     setattr(args, 'classes', sets)
@@ -102,10 +110,7 @@ def baseOpt():
     if not os.path.exists(args.result_pics_path):
         os.makedirs(args.result_pics_path)
 
-    random.seed(args.random_state)
-    np.random.seed(args.random_state)
-    torch.manual_seed(args.random_state)
-    torch.cuda.manual_seed(args.random_state)
-    torch.backends.cudnn.deterministic = True
+
+
 
     return args

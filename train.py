@@ -28,6 +28,7 @@ if __name__ == '__main__':
 
     num_workers = 1
     root = opts.dataset_path[0]
+    print(root)
     data = os.listdir(root)
     loader1 = GanLoader(
         DataLoader(ImageSet(data, opts, root),
@@ -53,7 +54,8 @@ if __name__ == '__main__':
         xa = next(loader1).to(opts.device)
         xb = next(loader2).to(opts.device)
 
-        dis_dict = trainer.dis_step(xa, xb)
+        if iter%2==0:
+            dis_dict = trainer.dis_step(xa, xb)
         gen_dict = trainer.gen_step(xa, xb)
         for k in dis_dict.keys():
             result['dis'][k].append(dis_dict[k])
