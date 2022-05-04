@@ -9,6 +9,7 @@ from .BaseRunner import *
 from utils.util import l1_loss
 from PIL import Image
 from os import mkdir
+from torch.autograd import grad
 
 class Runner(BaseRunner):
     def __init__(self, opt):
@@ -18,6 +19,7 @@ class Runner(BaseRunner):
 
         self.dis_a = self.dis_list[0]
         self.dis_b = self.dis_list[1]
+        self.iter=0
 
     def dis_step(self, x_a, x_b):
         t1 = time.time()
@@ -32,10 +34,11 @@ class Runner(BaseRunner):
         x_ab = self.gen_b.decode(dm_ab, s_b)
         x_ba_r = self.gen_a.decode(dm_ba, s_a_r)
         x_ab_r = self.gen_b.decode(dm_ab, s_b_r)
-        loss_a_random = self.dis_a.loss(x_a, x_ba_r.detach())
-        loss_b_random = self.dis_b.loss(x_b, x_ab_r.detach())
-        loss_a = self.dis_a.loss(x_a, x_ba.detach())
-        loss_b = self.dis_b.loss(x_b, x_ab.detach())
+        loss_a_random = self.dis_a.dis_loss(x_a, x_ba_r.detach())
+        loss_b_random = self.dis_b.dis_loss(x_b, x_ab_r.detach())
+        loss_a = self.dis_a.dis_loss(x_a, x_ba.detach())
+        loss_b = self.dis_b.dis_loss(x_b, x_ab.detach())
+
         total_loss = self.lambda_g * (loss_a + loss_b + loss_a_random + loss_b_random)
         if not torch.isnan(total_loss):
             total_loss.backward()
@@ -82,11 +85,11 @@ class Runner(BaseRunner):
         loss_recon_x_a, loss_recon_x_b = l1_loss(x_a, x_aa), l1_loss(x_b, x_bb)
         loss_recon_c_a, loss_recon_c_b = l1_loss(c_a_recon, c_a), l1_loss(c_b_recon, c_b)
         loss_cc_x_a, loss_cc_x_b = l1_loss(x_a, x_aba), l1_loss(x_b, x_bab)
-        loss_adv_a, loss_adv_b = self.dis_a.loss(x_a, x_ba), self.dis_b.loss(x_b, x_ab)
+        loss_adv_a, loss_adv_b = self.dis_a.gen_loss(x_a, x_ba), self.dis_b.gen_loss(x_b, x_ab)
         loss_perceptual_a, loss_perceptual_b = self.vgg_perceptual_loss(x_ba, x_a), self.vgg_perceptual_loss(x_ab, x_b)
         loss_recon_s_a_random, loss_recon_s_b_random = l1_loss(s_a_recon_r, s_a_r), l1_loss(s_b_recon_r, s_b_r)
         loss_recon_c_a_random, loss_recon_c_b_random = l1_loss(c_a_recon_r, c_a), l1_loss(c_b_recon_r, c_b)
-        loss_adv_a_random, loss_adv_b_random = self.dis_a.loss(x_a, x_ba_r), self.dis_a.loss(x_b, x_ab_r)
+        loss_adv_a_random, loss_adv_b_random = self.dis_a.gen_loss(x_a, x_ba_r), self.dis_a.gen_loss(x_b, x_ab_r)
         loss_perceptual_a_random, loss_perceptual_b_random = \
             self.vgg_perceptual_loss(x_ba_r, x_a), self.vgg_perceptual_loss(x_ab_r, x_b)
 

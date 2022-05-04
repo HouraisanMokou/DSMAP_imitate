@@ -2,7 +2,7 @@ from torch import nn
 from torch.nn import functional as F
 from ..Blocks.Conv import Conv
 from ..util.active import *
-from utils.util import hinge_loss, ls_loss
+from utils.util import hinge_loss, dis_ls_loss
 
 
 class MultiDiscriminator(nn.Module):
@@ -56,7 +56,7 @@ class MultiDiscriminator(nn.Module):
 
         for iter, (fake, real) in enumerate(zip(out0, out1)):
             if self.loss_mod == 'ls':
-                losses += ls_loss(real, fake)
+                losses += dis_ls_loss(real, fake)
             elif self.loss_mod == 'hinge':
                 losses += hinge_loss(real, fake)
         return losses

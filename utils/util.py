@@ -25,8 +25,11 @@ def hinge_loss(real, fake):
     return F.relu(1 - real).mean() + F.relu(1 + fake).mean()
 
 
-def ls_loss(real, fake):
-    return torch.mean((fake + 1) ** 2) + torch.mean((real - 1) ** 2)
+def dis_ls_loss(real, fake):
+    return torch.mean(fake ** 2) + torch.mean((real - 1) ** 2)
+
+def gen_ls_loss(real, fake):
+    return torch.mean((fake - 1) ** 2)
 
 
 def l1_loss(real, fake):

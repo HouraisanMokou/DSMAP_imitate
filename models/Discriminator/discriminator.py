@@ -2,7 +2,7 @@ from torch import nn
 from torch.nn import functional as F
 from ..Blocks.Conv import Conv
 from ..util.active import *
-from utils.util import hinge_loss, ls_loss
+from utils.util import hinge_loss, dis_ls_loss,gen_ls_loss
 
 
 class Discriminator(nn.Module):
@@ -37,14 +37,26 @@ class Discriminator(nn.Module):
             x = self.avg_pool(x)
         return outputs
 
-    def loss(self, real, fake):
+    def dis_loss(self, real, fake):
         out0 = self(fake)
         out1 = self(real)
         losses = 0
 
         for iter, (fake, real) in enumerate(zip(out0, out1)):
             if self.loss_mod == 'ls':
-                losses += ls_loss(real, fake)
+                losses += dis_ls_loss(real, fake)
+            elif self.loss_mod == 'hinge':
+                losses += hinge_loss(real, fake)
+        return losses
+
+    def gen_loss(self, real, fake):
+        out0 = self(fake)
+        out1 = self(real)
+        losses = 0
+
+        for iter, (fake, real) in enumerate(zip(out0, out1)):
+            if self.loss_mod == 'ls':
+                losses += gen_ls_loss(real, fake)
             elif self.loss_mod == 'hinge':
                 losses += hinge_loss(real, fake)
         return losses
