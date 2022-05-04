@@ -93,16 +93,16 @@ class Runner(BaseRunner):
         loss_perceptual_a_random, loss_perceptual_b_random = \
             self.vgg_perceptual_loss(x_ba_r, x_a), self.vgg_perceptual_loss(x_ab_r, x_b)
 
-        # print(f"loss_recon_x_a {loss_recon_x_a} {loss_recon_x_b}")
-        # print(f"loss_recon_c_a {loss_recon_c_a} {loss_recon_c_b}")
-        # print(f"loss_recon_d_a {loss_recon_d_a} {loss_recon_d_b}")
-        # print(f"loss_cc_x_a {loss_cc_x_a} {loss_cc_x_b}")
-        # print(f"loss_adv_a {loss_adv_a} {loss_adv_b}")
-        # print(f"loss_perceptual {loss_perceptual_a} {loss_perceptual_b}")
-        # print(f"loss_recon_s_a_r {loss_recon_s_a_random} {loss_recon_s_b_random}")
-        # print(f"loss_recon_c_a_r {loss_recon_c_a_random} {loss_recon_c_b_random}")
-        # print(f"loss_adv_a_r {loss_adv_a_random} {loss_adv_b_random}")
-        # print(f"loss_perceptual_a_r {loss_perceptual_a_random} {loss_perceptual_b_random}")
+        print(f"loss_recon_x_a {loss_recon_x_a} {loss_recon_x_b}")
+        print(f"loss_recon_c_a {loss_recon_c_a} {loss_recon_c_b}")
+        print(f"loss_recon_d_a {loss_recon_d_a} {loss_recon_d_b}")
+        print(f"loss_cc_x_a {loss_cc_x_a} {loss_cc_x_b}")
+        print(f"loss_adv_a {loss_adv_a} {loss_adv_b}")
+        print(f"loss_perceptual {loss_perceptual_a} {loss_perceptual_b}")
+        print(f"loss_recon_s_a_r {loss_recon_s_a_random} {loss_recon_s_b_random}")
+        print(f"loss_recon_c_a_r {loss_recon_c_a_random} {loss_recon_c_b_random}")
+        print(f"loss_adv_a_r {loss_adv_a_random} {loss_adv_b_random}")
+        print(f"loss_perceptual_a_r {loss_perceptual_a_random} {loss_perceptual_b_random}")
 
         total_loss = \
             self.lambda_g * (loss_adv_a + loss_adv_b + loss_adv_a_random + loss_adv_b_random) + \

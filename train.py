@@ -55,11 +55,15 @@ if __name__ == '__main__':
         xa = next(loader1).to(opts.device)
         xb = next(loader2).to(opts.device)
 
-        if iter >=500 and iter%2==0:
-            dis_dict = trainer.dis_step(xa, xb)
-            for k in dis_dict.keys():
-                result['dis'][k].append(dis_dict[k])
-            dis_loss += result['dis']['total_loss'][-1]
+        # if iter >=500 and iter%2==0:
+        #     dis_dict = trainer.dis_step(xa, xb)
+        #     for k in dis_dict.keys():
+        #         result['dis'][k].append(dis_dict[k])
+        #     dis_loss += result['dis']['total_loss'][-1]
+        dis_dict = trainer.dis_step(xa, xb)
+        for k in dis_dict.keys():
+            result['dis'][k].append(dis_dict[k])
+        dis_loss += result['dis']['total_loss'][-1]
         gen_dict = trainer.gen_step(xa, xb)
         for k in gen_dict.keys():
             result['gen'][k].append(gen_dict[k])
