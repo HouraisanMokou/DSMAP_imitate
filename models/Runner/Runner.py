@@ -4,12 +4,14 @@ import time
 import numpy as np
 import torch
 from torch.autograd import Variable
+from ..Generator.generator import Generator,Generator_modulation
 
 from .BaseRunner import *
 from utils.util import l1_loss
 from PIL import Image
 from os import mkdir
 from torch.autograd import grad
+from torchvision.utils import make_grid,save_image
 
 class Runner(BaseRunner):
     def __init__(self, opt):
@@ -93,16 +95,16 @@ class Runner(BaseRunner):
         loss_perceptual_a_random, loss_perceptual_b_random = \
             self.vgg_perceptual_loss(x_ba_r, x_a), self.vgg_perceptual_loss(x_ab_r, x_b)
 
-        print(f"loss_recon_x_a {loss_recon_x_a} {loss_recon_x_b}")
-        print(f"loss_recon_c_a {loss_recon_c_a} {loss_recon_c_b}")
-        print(f"loss_recon_d_a {loss_recon_d_a} {loss_recon_d_b}")
-        print(f"loss_cc_x_a {loss_cc_x_a} {loss_cc_x_b}")
-        print(f"loss_adv_a {loss_adv_a} {loss_adv_b}")
-        print(f"loss_perceptual {loss_perceptual_a} {loss_perceptual_b}")
-        print(f"loss_recon_s_a_r {loss_recon_s_a_random} {loss_recon_s_b_random}")
-        print(f"loss_recon_c_a_r {loss_recon_c_a_random} {loss_recon_c_b_random}")
-        print(f"loss_adv_a_r {loss_adv_a_random} {loss_adv_b_random}")
-        print(f"loss_perceptual_a_r {loss_perceptual_a_random} {loss_perceptual_b_random}")
+        # print(f"loss_recon_x_a {loss_recon_x_a} {loss_recon_x_b}")
+        # print(f"loss_recon_c_a {loss_recon_c_a} {loss_recon_c_b}")
+        # print(f"loss_recon_d_a {loss_recon_d_a} {loss_recon_d_b}")
+        # print(f"loss_cc_x_a {loss_cc_x_a} {loss_cc_x_b}")
+        # print(f"loss_adv_a {loss_adv_a} {loss_adv_b}")
+        # print(f"loss_perceptual {loss_perceptual_a} {loss_perceptual_b}")
+        # print(f"loss_recon_s_a_r {loss_recon_s_a_random} {loss_recon_s_b_random}")
+        # print(f"loss_recon_c_a_r {loss_recon_c_a_random} {loss_recon_c_b_random}")
+        # print(f"loss_adv_a_r {loss_adv_a_random} {loss_adv_b_random}")
+        # print(f"loss_perceptual_a_r {loss_perceptual_a_random} {loss_perceptual_b_random}")
 
         total_loss = \
             self.lambda_g * (loss_adv_a + loss_adv_b + loss_adv_a_random + loss_adv_b_random) + \
@@ -178,35 +180,11 @@ class Runner(BaseRunner):
         return 'load successfully from iter ' + str(iter)
 
     def gen(self, xa, xb,iter,opt):
-        amount = xa.shape[0]
-        w, h = xa.shape[2], xa.shape[3]
-        width_amount = np.ceil(amount ** 0.5).astype('uint8')
-        width = width_amount * xa.shape[2]
-        height = width_amount * xa.shape[3]
-        out = np.zeros((width, height, 3))
-
-        cnt = 0
         with torch.no_grad():
-            pre_a, c_a, c_a_share, dm_ab, s_a = self.gen_a.encode(xa)
-            pre_b, c_b, c_b_share, dm_ba, s_b = self.gen_b.encode(xb)
-
-            x_ab = self.gen_b.decode(dm_ab, s_b)
-
-            x_ab = x_ab.cpu().numpy()
-            tmp = x_ab * 127 + 127
-            tmp[tmp < 0] = 0
-            tmp[tmp > 255] = 255
-            tmp = tmp.transpose(0, 2, 3, 1)
-            for i in range(width_amount):
-                for j in range(width_amount):
-                    # print(tmp[cnt,:,:,:].shape,out.shape)
-                    out[i * w:(i + 1) * w, j * h:(j + 1) * h,:] = tmp[cnt,:,:,:].astype('uint8')
-                    cnt += 1
-                    if cnt >= amount:
-                        break
-                if cnt >= amount:
-                    break
-        i=Image.fromarray(out.astype('uint8'))
-        if not os.path.exists(f'{opt.checkpoints_prefix}/image'):
-            mkdir(f'{opt.checkpoints_prefix}/image')
-        i.save(f'{opt.checkpoints_prefix}/image/visual_{iter}.jpg')
+            xba, xab = self.sample(xa, xb)
+            length = xa.size()[0]
+            all_images = torch.cat([xa, xb, xab, xba], dim=0)
+            result = make_grid(all_images, nrow=length)
+            if not os.path.exists(f'{opt.checkpoints_prefix}/image'):
+                mkdir(f'{opt.checkpoints_prefix}/image')
+            save_image(result, f'{opt.checkpoints_prefix}/image/visual_{iter}.jpg')

@@ -3,11 +3,16 @@ from torch.nn import functional as F
 from .ResBlock import ResBlock
 
 class ResBlocks(nn.Module):
-    def __init__(self,num_block,dim,norm_mod=None,active=nn.ReLU):
+    def __init__(self, num_block, dim, norm_mod=None, active=nn.ReLU, modulation=None):
         super(ResBlocks, self).__init__()
+        if modulation is None:
+            modulation = []
         layers=[]
         for _ in range(num_block):
-            layers += [ResBlock(dim,norm_mod=norm_mod,active=active)]
+            if _ in modulation:
+                layers += [ResBlock(dim, norm_mod='modulation', active=active)]
+            else:
+                layers += [ResBlock(dim, norm_mod=norm_mod, active=active)]
         self.model=nn.Sequential(*layers)
 
     def forward(self,x):

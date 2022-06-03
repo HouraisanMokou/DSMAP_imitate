@@ -31,6 +31,7 @@ class BaseRunner(nn.Module):
         self.style_dim = opt.style_dim
         self.gen_list = nn.ModuleList()
         self.dis_list = nn.ModuleList()
+        self.modulation=opt.modulation_list
         for idx in range(self.num_domain):
             gen = Generator(self.content_encoder, idx, opt)
             dis = Discriminator(opt)
@@ -42,8 +43,8 @@ class BaseRunner(nn.Module):
         for dis in self.dis_list:
             dis_paras += list(dis.parameters())
         gen_paras,dis_paras=list(set(gen_paras)),list(set(dis_paras))
-        self.gen_optimizer = Adam(gen_paras, lr=opt.lr, weight_decay=opt.l2)
-        self.dis_optimizer = Adam(dis_paras, lr=opt.lr/10, weight_decay=opt.l2)
+        self.gen_optimizer = Adam(gen_paras,betas=(0.5, 0.999), lr=opt.lr, weight_decay=opt.l2)
+        self.dis_optimizer = Adam(dis_paras,betas=(0.5, 0.999), lr=opt.lr, weight_decay=opt.l2)
         self.gen_scheduler = StepLR(self.gen_optimizer,opt.step,opt.gamma)
         self.dis_scheduler = StepLR(self.dis_optimizer,opt.step,opt.gamma)
 

@@ -3,11 +3,13 @@ import os.path
 import time
 
 import numpy as np
+import torch
 from torch.utils.data import DataLoader
 
 from utils import opt, util
 from utils.data import ImageSet, GanLoader
 from models.Runner.Runner import Runner
+from torchvision.utils import make_grid,save_image
 from collections import defaultdict
 
 from PIL import Image
@@ -45,47 +47,12 @@ if __name__ == '__main__':
     _, suc = util.load(opts, runner, opts.testing_iter)
     logger.info(suc)
     results = []
-    max_iter = int(np.ceil(opts.show_samples / opts.batch_size))
-    for iter in range(max_iter):
-        xa, was,has = next(loader1)
-        xb, wbs,hbs = next(loader2)
-        xa,xb=xa.to(opts.device),xb.to(opts.device)
-        xba, xab = runner.sample(xa, xb)
-        results.append([
-            xa.cpu().detach().numpy(), xb.cpu().detach().numpy(),
-            xba.cpu().detach().numpy(), xab.cpu().detach().numpy(),
-            was.cpu().detach().numpy(), has.cpu().detach().numpy(),
-            wbs.cpu().detach().numpy(),hbs.cpu().detach().numpy()
-        ])
+    xa, was, has = next(loader1)
+    xb, wbs, hbs = next(loader2)
     logger.info('start to save')
-    cnt = 0
-    for batch in results:
-        for idx in range(batch[0].shape[0]):
-            cnt += 1
-            batch2 = []
-            for p in range(4):
-                x = batch[p]
-                tmp = x * 127 + 127
-                tmp[tmp < 0] = 0
-                tmp[tmp > 255] = 255
-                tmp = tmp.transpose(0, 2, 3, 1)
-                batch2.append(tmp)
-
-            xa = batch2[0][idx, :, :, :].astype('uint8')
-            xb = batch2[1][idx, :, :, :].astype('uint8')
-            xba = batch2[2][idx, :, :, :].astype('uint8')
-            xab = batch2[3][idx, :, :, :].astype('uint8')
-            wa = batch[4][idx]
-            ha = batch[5][idx]
-            wb = batch[6][idx]
-            hb = batch[7][idx]
-
-            ia = Image.fromarray(xa).resize((wa,ha))
-            ib = Image.fromarray(xb).resize((wb,hb))
-            iba = Image.fromarray(xba).resize((wa,ha))
-            iab = Image.fromarray(xab).resize((wb,hb))
-
-            ia.save(os.path.join(opts.result_pics_path, f'pair{cnt}_a.jpg'))
-            ib.save(os.path.join(opts.result_pics_path, f'pair{cnt}_b.jpg'))
-            iba.save(os.path.join(opts.result_pics_path, f'pair{cnt}_ba.jpg'))
-            iab.save(os.path.join(opts.result_pics_path, f'pair{cnt}_ab.jpg'))
+    xa, xb = xa.to(opts.device), xb.to(opts.device)
+    xba, xab = runner.sample(xa, xb)
+    length=xa.size()[0]
+    all_images=torch.cat([xa,xb,xab,xba],dim=0)
+    result=make_grid(all_images,nrow=length)
+    save_image(result,'result.jpg')

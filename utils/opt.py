@@ -31,11 +31,12 @@ def baseOpt():
     parser.add_argument('--save_period', type=int, default=1000,
                         help='save period')
     parser.add_argument('--lr', type=float, default=1e-4, help='learning rate')
-    parser.add_argument('--l2', type=float, default=0, help='l2 regularization in optimizer')
+    parser.add_argument('--l2', type=float, default=1e-5, help='l2 regularization in optimizer')
     parser.add_argument('--batch_size', type=int, default=6, help='batch size while training/ validating')
 
     parser.add_argument('--size', type=int, default=192, help='h,w of img')
     # args for model
+    parser.add_argument('--modulation',type=str,default='',help='the blocks convert to modulation')
     parser.add_argument('--num_layer', type=int, default=4, help='# of layer of whole model')
     parser.add_argument('--dim', type=int, default=64, help='dim of encoded feature')
     parser.add_argument('--step', type=int, default=100000, help='step of lr scheduler')
@@ -75,6 +76,8 @@ def baseOpt():
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
+    setattr(args, 'modulation_list', [int(_) for _ in args.modulation.split('-')])
+
     setattr(args, 'logging_file_name', os.path.join(
         args.logging_directory,
         '{}_{}_{}.txt'.format(args.model,
@@ -96,7 +99,7 @@ def baseOpt():
     paths=[os.path.join(args.data_directory, s) for s in sets]
     setattr(args, 'dataset_path', paths)
     setattr(args, 'classes', sets)
-    prefix = args.checkpoints_directory + '/' + '{}_{}'.format(args.model, args.dataset_name)
+    prefix = args.checkpoints_directory + '/' + '{}_{}_{}'.format(args.model, args.dataset_name,args.modulation)
     setattr(args, 'checkpoints_prefix',
             prefix)
     if not os.path.exists(prefix):

@@ -77,4 +77,4 @@ if __name__ == '__main__':
             dis_loss, gen_loss = 0, 0
 
             trainer.gen(xa,xb,iter,opts)
-        # logger.info('finish a iter')
+        logger.info(f'finish iter {iter}')
